@@ -8,7 +8,7 @@ dwa_local_planner/DWAPlannerROS:
   min_vel_x: 0.1
   max_vel_y: 0
   min_vel_y: 0
-  max_vel_theta: 2.5
+  max_vel_theta: 3.0
   min_in_place_vel_theta: 0.4
 
   acc_lim_theta: 2.0
@@ -16,21 +16,21 @@ dwa_local_planner/DWAPlannerROS:
   acc_lim_y: 0.0
   
   yaw_goal_tolerance: 0.3
-  xy_goal_tolerance: 0.25
+  xy_goal_tolerance: 0.5
   latch_xy_goal_tolerance: false
-  sim_time: 2.0
   
   holonomic_robot: false
   escape_vel: -0.5
+  sim_time: 2.0
   
-  path_distance_bias: 3.0s
-  goal_distance_bias: 12.0
+  path_distance_bias: 0.8
+  goal_distance_bias: 16.0
   
 
   # Trajectory scoring parameters
   meter_scoring: true # Whether the gdist_scale and pdist_scale parameters should assume that goal_distance and path_distance are expressed in units of meters or cells. Cells are assumed by default (false).
-  occdist_scale:  0.05 #The weighting for how much the controller should attempt to avoid obstacles. default 0.01
-  heading_lookahead: 1.5 #How far to look ahead in meters when scoring different in-place-rotation trajectories
+  occdist_scale:  0.02 #The weighting for how much the controller should attempt to avoid obstacles. default 0.01
+  heading_lookahead: 1.0 #How far to look ahead in meters when scoring different in-place-rotation trajectories
   heading_scoring: false  #Whether to score based on the robot's heading to the path or its distance from the path. default false
   heading_scoring_timestep: 0.8   #How far to look ahead in time in seconds along the simulated trajectory when using heading scoring (double, default: 0.8)
   dwa: true #Whether to use the Dynamic Window Approach (DWA)_ or whether to use Trajectory Rollout
