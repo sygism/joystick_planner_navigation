@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<launch>
+		
+	<!--<node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" respawn="false" name="depthimage_to_laserscan">
+		<remap from="image" to="camera/depth/image_rect_raw"/>
+		<param name="output_frame_id" value="camera_depth_frame"/>
+		<param name="scan_height" value="10"/>
+	</node> !-->
+
+	<include file="$(find jackal_nav)/launch/include/gmapping.launch" />
+	
+	<node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen">
+	  <rosparam file="$(find jackal_nav)/params/controllers.yaml" command="load" />
+	  <rosparam file="$(find jackal_nav)/params/planners.yaml" command="load" />
+	  <rosparam file="$(find jackal_nav)/params/recovery.yaml" command="load" />
+	  <rosparam file="$(find jackal_nav)/params/robotont_params/costmap_common_params.yaml" subst_value="true" command="load" ns="global_costmap" />
+	  <rosparam file="$(find jackal_nav)/params/robotont_params/costmap_common_params.yaml" subst_value="true" command="load" ns="local_costmap" />
+	  
+	  <rosparam file="$(find jackal_nav)/params/robotont_params/global_costmap_params.yaml" command="load" ns="global_costmap" />
+	  <rosparam file="$(find jackal_nav)/params/robotont_params/local_costmap_params.yaml" command="load" ns="local_costmap" />
+		<param name="local_costmap/width" value="6.0"/>
+		<param name="local_costmap/height" value="6.0"/>
+	</node>
+   
+	<node pkg="joy" type="joy_node" name="ps4_joy" respawn="true" >
+		<param name="dev" type="string" value="/dev/input/js0" />
+		<param name="deadzone" value="0.12" />
+	</node>
+	<node pkg="joystick_planner" type="joystick_planner_node" name="joystick_planner" output="screen">
+		<param name="scale_linear" value="1.0" />
+		<param name="scale_angular" value="0.5" />
+		<param name="odom_node" value="odom"/>
+		<param name="local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+	</node>
+</launch>

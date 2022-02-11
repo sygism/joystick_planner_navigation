@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>nav_stack_jsp</name>
+  <version>0.0.1</version>
+  <description>Navigation stack for using with JoystickPlanner</description>
+
+  <maintainer email="markus.sugis@gmail.com">Markus Erik Sügis</maintainer>
+  <license>GPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>joystick_planner</build_depend>
+  <build_depend>move_base_flex</build_depend>
+  <build_export_depend>move_base_flex</build_export_depend>
+  <exec_depend>move_base_flex</exec_depend>
+  <exec_depend>joystick_planner</exec_depend>
+
+  <export>
+  </export>
+</package>

@@ -1,0 +1,31 @@
+---
+controllers:
+ - name: 'teb_local_planner/TebLocalPlannerROS'
+   type: 'teb_local_planner/TebLocalPlannerROS'
+
+teb_local_planner/TebLocalPlannerROS:
+  footprint_model/type: circular
+  footprint_model/radius: 0.2
+  
+  max_vel_x: 0.3
+  min_vel_x: 0.1
+  max_vel_y: 0
+  min_vel_y: 0
+  max_vel_theta: 0.3
+  min_in_place_vel_theta: 0.4
+  
+  radius: 0.2
+
+  acc_lim_theta: 3.2
+  acc_lim_x: 2.5
+  acc_lim_y: 0.0
+  
+  yaw_goal_tolerance: 0.5
+  xy_goal_tolerance: 0.5
+  
+  holonomic_robot: false
+  escape_vel: -0.5
+  
+  min_obstacle_dist: 0.2
+  goal_distance_bias: 24.0
+  include_costmap_obstacles: true
