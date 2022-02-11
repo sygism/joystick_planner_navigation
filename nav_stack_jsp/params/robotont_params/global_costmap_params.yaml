@@ -3,7 +3,6 @@ global_frame: map
 
 static_map: false
 rolling_window: true
-track_unknown_space: false
 
 plugins:
 - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
