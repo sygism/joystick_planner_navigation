@@ -1,0 +1,10 @@
+
+global_frame: map
+
+static_map: false
+rolling_window: true
+
+plugins:
+- {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+- {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+- {name: static_layer, type: "costmap_2d::StaticLayer"}

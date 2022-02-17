@@ -89,6 +89,7 @@ public:
         private_nh.param<std::string>("local_planner", this->local_planner, "teb_local_planner/TebLocalPlannerROS");
         private_nh.param<std::string>("path_exe_topic", this->exe_path_topic, "move_base_flex/exe_path");
         private_nh.param<std::string>("input_status_topic", this->input_status_topic, "joystick_planner/input_status");
+        private_nh.param("move_base_flex/exe_path/actionlib_client_sub_queue_size", 1);
         
         std::string msg = "JoystickPlanner INFO:\n"
         		"Parameters**:\n"
@@ -148,7 +149,6 @@ public:
 				break;
 			case false:
 				ROS_INFO("JoystickPlanner INFO: input is now disabled.");
-				this->constructPath();
 				// this->input_status.publish(false);
 				break;
 			}
@@ -206,39 +206,42 @@ public:
 		if (current_yaw < 0){ current_yaw = 2 * M_PI - (current_yaw * -1); }
 		current_yaw += current_joy_l_x * (M_PI / 2);
 		
-		// populate the array
-		for (int i = 0; i < 100; i++){
-			geometry_msgs::PoseStamped p;
-			p.header.stamp = ros::Time::now();
-			p.header.frame_id = "odom";
-			// calculate next x and y position values
-			p.pose.position.x = current_x + (cos(current_yaw + current_joy_r_x * current_time) * current_time);
-			p.pose.position.y = current_y + current_joy_l_y * (sin(current_yaw + current_joy_r_x * current_time) * current_time);
-			p.pose.position.z = 0;
-			p.pose.orientation.x = 0.0;
-			p.pose.orientation.y = 0.0;
-			p.pose.orientation.z = 0.0;
-			p.pose.orientation.w = 1.0;
-			poses[i] = p;
-			current_time += tot_time;
-		}
-		
-		// create path object
-		nav_msgs::Path _custom_path;
-		_custom_path.header.frame_id = this->robot_base_frame;
-		_custom_path.header.stamp = ros::Time::now();
-		_custom_path.poses = poses;
-		
-		// create ActionGoal for 'move_base_flex'
-		mbf_msgs::ExePathGoal customPath;
-		customPath.controller = this->local_planner;
-		customPath.path = _custom_path;
-		
-		// relay created ActionGoal to 'move_base_flex'
-		ROS_INFO("JoystickPlanner INFO: sending path to controller.");
-		pc->sendGoal(customPath);
-		
-		// pc.waitForResults(); // uncomment for result waiting
+		if (current_joy_l_y != 0)
+		{
+			// populate the array
+			for (int i = 0; i < 100; i++){
+				geometry_msgs::PoseStamped p;
+				p.header.stamp = ros::Time::now();
+				p.header.frame_id = "odom";
+				// calculate next x and y position values
+				p.pose.position.x = current_x + (cos(current_yaw + current_joy_r_x * current_time) * current_time);
+				p.pose.position.y = current_y + current_joy_l_y * (sin(current_yaw + current_joy_r_x * current_time) * current_time);
+				p.pose.position.z = 0;
+				p.pose.orientation.x = 0.0;
+				p.pose.orientation.y = 0.0;
+				p.pose.orientation.z = 0.0;
+				p.pose.orientation.w = 1.0;
+				poses[i] = p;
+				current_time += tot_time;
+			}
+			
+			// create path object
+			nav_msgs::Path _custom_path;
+			_custom_path.header.frame_id = this->robot_base_frame;
+			_custom_path.header.stamp = ros::Time::now();
+			_custom_path.poses = poses;
+			
+			// create ActionGoal for 'move_base_flex'
+			mbf_msgs::ExePathGoal customPath;
+			customPath.controller = this->local_planner;
+			customPath.path = _custom_path;
+			
+			// relay created ActionGoal to 'move_base_flex'
+			// ROS_INFO("JoystickPlanner INFO: sending path to controller.");
+			pc->sendGoal(customPath);
+			
+			// pc.waitForResults(); // uncomment for result waiting
+			}
 		
 	}
 
@@ -282,6 +285,10 @@ public:
 	void run()
 	{
 		this->checkInputEnabled();
+		if (this->inputEnabled)
+		{
+			this->constructPath();
+		}
 	}
 };
 

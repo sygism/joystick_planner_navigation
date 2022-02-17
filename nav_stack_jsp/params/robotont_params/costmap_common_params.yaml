@@ -1,15 +1,15 @@
 
 footprint: 
-    - [-0.2, -0.2]
-    - [-0.2, 0.2]
-    - [0.2, 0.2]
-    - [0.2, -0.2]
+    - [-0.15, -0.15]
+    - [-0.15, 0.15]
+    - [0.2, 0.15]
+    - [0.2, -0.15]
 footprint_padding: 0.02
 robot_base_frame: base_footprint
 map_type: costmap
 
-update_frequency:  6.0
-publish_frequency: 4.0
+update_frequency:  4.0
+publish_frequency: 3.0
 transform_tolerance: 0.5
 
 obstacles_layer:

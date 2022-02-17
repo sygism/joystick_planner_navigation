@@ -10,7 +10,7 @@
 	<include file="$(find nav_stack_jsp)/launch/include/gmapping.launch" />
 	
 	<node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen">
-	  <rosparam file="$(find nav_stack_jsp)/params/controllers.yaml" command="load" />
+	  <rosparam file="$(find nav_stack_jsp)/params/controllers_teb.yaml" command="load" />
 	  <rosparam file="$(find nav_stack_jsp)/params/planners.yaml" command="load" />
 	  <rosparam file="$(find nav_stack_jsp)/params/recovery.yaml" command="load" />
 	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/costmap_common_params.yaml" subst_value="true" command="load" ns="global_costmap" />
@@ -18,8 +18,8 @@
 	  
 	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/global_costmap_params.yaml" command="load" ns="global_costmap" />
 	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/local_costmap_params.yaml" command="load" ns="local_costmap" />
-		<param name="local_costmap/width" value="6.0"/>
-		<param name="local_costmap/height" value="6.0"/>
+		<param name="local_costmap/width" value="4.0"/>
+		<param name="local_costmap/height" value="4.0"/>
 	</node>
    
 	<node pkg="joy" type="joy_node" name="ps4_joy" respawn="true" >
@@ -30,6 +30,7 @@
 		<param name="scale_linear" value="1.0" />
 		<param name="scale_angular" value="0.5" />
 		<param name="odom_node" value="odom"/>
-		<param name="local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+		<!-- <param name="local_planner" value="dwa_local_planner/DWAPlannerROS"/> !-->
+		<param name="local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
 	</node>
 </launch>

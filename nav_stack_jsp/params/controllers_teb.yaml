@@ -7,11 +7,11 @@ teb_local_planner/TebLocalPlannerROS:
   footprint_model/type: circular
   footprint_model/radius: 0.2
   
-  max_vel_x: 0.3
-  min_vel_x: 0.1
+  max_vel_x: 0.4
+  min_vel_x: 0.05
   max_vel_y: 0
   min_vel_y: 0
-  max_vel_theta: 0.3
+  max_vel_theta: 0.8
   min_in_place_vel_theta: 0.4
   
   radius: 0.2
@@ -26,6 +26,5 @@ teb_local_planner/TebLocalPlannerROS:
   holonomic_robot: false
   escape_vel: -0.5
   
-  min_obstacle_dist: 0.2
-  goal_distance_bias: 24.0
+  min_obstacle_dist: 0.05
   include_costmap_obstacles: true
