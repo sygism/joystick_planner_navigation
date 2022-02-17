@@ -20,7 +20,10 @@
 	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/local_costmap_params.yaml" command="load" ns="local_costmap" />
 		<param name="local_costmap/width" value="4.0"/>
 		<param name="local_costmap/height" value="4.0"/>
+	  <remap from="cmd_vel" to="move_base_flex/cmd_vel"/>
 	</node>
+	
+	<node pkg="speed_controller_jsp" type="speed_controller_jsp_node" name="speed_controller_jsp" output="screen" />
    
 	<node pkg="joy" type="joy_node" name="ps4_joy" respawn="true" >
 		<param name="dev" type="string" value="/dev/input/js0" />

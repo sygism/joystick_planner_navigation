@@ -1,5 +1,5 @@
 /*
- *  controller_handler.cpp
+ *  joystick_planner.cpp
  *
  *  author: Markus Erik Sügis <markus.sugis@gmail.com>
  */
@@ -7,6 +7,7 @@
 #include <string>
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Quaternion.h>
@@ -35,6 +36,7 @@ class JoystickPlanner {
 private:
     ros::Subscriber controller_raw;
 	ros::Subscriber robot_odometry;
+	ros::Publisher speed_modifier_pub;
 	
 	// Variable for determining whether input is enabled
 	bool inputEnabled = false;
@@ -63,7 +65,7 @@ private:
 	std::string odom_node;
 	// Parameter for specifying type of controller used
 	std::string controller_mapping;
-	// Parameter for specifying the robot's base frame
+	// Parameter for specifying the robot's base frameSpeed
 	std::string robot_base_frame;
 	// Parameter for specifying the local planner used
 	std::string local_planner;
@@ -71,6 +73,8 @@ private:
 	std::string exe_path_topic;
 	// Parameter for specifying input status topic
 	std::string input_status_topic;
+	// Parameter for specifying robot's speed topic
+	std::string speed_modifier_pub_topic;
 	
 	// Button debounce stuff
 	Button_State l1_btn_state;
@@ -89,6 +93,7 @@ public:
         private_nh.param<std::string>("local_planner", this->local_planner, "teb_local_planner/TebLocalPlannerROS");
         private_nh.param<std::string>("path_exe_topic", this->exe_path_topic, "move_base_flex/exe_path");
         private_nh.param<std::string>("input_status_topic", this->input_status_topic, "joystick_planner/input_status");
+        private_nh.param<std::string>("speed_modifier_topic", this->speed_modifier_pub_topic, "joystick_planner/speed_modifier");
         private_nh.param("move_base_flex/exe_path/actionlib_client_sub_queue_size", 1);
         
         std::string msg = "JoystickPlanner INFO:\n"
@@ -104,6 +109,8 @@ public:
         this->controller_raw = n.subscribe<sensor_msgs::Joy>("/joy", 10, &JoystickPlanner::mapOutput, this);
 		// subscribe to '/odometry/filtered' topic where the robot's odometry is published to
 		this->robot_odometry = n.subscribe<nav_msgs::Odometry>(this->odom_node, 10,  &JoystickPlanner::updateRobotPosition, this);
+		// Create publisher for joystick given robot linear speed
+		this->speed_modifier_pub = n.advertise<std_msgs::Float32>(this->speed_modifier_pub_topic, 30);
 		// this->input_status = n.advertise<std_msgs::Bool>(this->input_status_topic, 100);
 		
 		pc = new actionlib::SimpleActionClient<mbf_msgs::ExePathAction>(this->exe_path_topic, true);
@@ -190,7 +197,7 @@ public:
 		filterData();
 		
 		// Assign delta time value
-		double tot_time = 0.05;
+		double tot_time = 0.02;
 		double current_time = 0.0;
 		
 		// Create an std:vector for holding path positions
@@ -206,6 +213,11 @@ public:
 		if (current_yaw < 0){ current_yaw = 2 * M_PI - (current_yaw * -1); }
 		current_yaw += current_joy_l_x * (M_PI / 2);
 		
+		// Send requested speed to the SpeedController
+		std_msgs::Float32 speed_mod;
+		speed_mod.data = this->calculateSpeed(current_joy_l_y);
+		this->speed_modifier_pub.publish(speed_mod);
+		
 		if (current_joy_l_y != 0)
 		{
 			// populate the array
@@ -215,7 +227,7 @@ public:
 				p.header.frame_id = "odom";
 				// calculate next x and y position values
 				p.pose.position.x = current_x + (cos(current_yaw + current_joy_r_x * current_time) * current_time);
-				p.pose.position.y = current_y + current_joy_l_y * (sin(current_yaw + current_joy_r_x * current_time) * current_time);
+				p.pose.position.y = current_y + (sin(current_yaw + current_joy_r_x * current_time) * current_time);
 				p.pose.position.z = 0;
 				p.pose.orientation.x = 0.0;
 				p.pose.orientation.y = 0.0;
@@ -237,7 +249,6 @@ public:
 			customPath.path = _custom_path;
 			
 			// relay created ActionGoal to 'move_base_flex'
-			// ROS_INFO("JoystickPlanner INFO: sending path to controller.");
 			pc->sendGoal(customPath);
 			
 			// pc.waitForResults(); // uncomment for result waiting
@@ -280,6 +291,11 @@ public:
 		angles.pitch = asin(2 * (q.w * q.y - q.z * q.x));
 		angles.yaw = (atan2((2 * (q.w * q.z + q.x * q.y)), (1 - 2 * (pow(q.y, 2) + pow(q.z, 2)))));
 		return angles;
+	}
+	
+	double calculateSpeed(double joy_pos_l)
+	{
+		return 0.35 * joy_pos_l + 0.15;
 	}
 	
 	void run()
