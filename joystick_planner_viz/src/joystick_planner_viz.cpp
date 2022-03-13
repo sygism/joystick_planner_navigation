@@ -36,8 +36,8 @@ class JoystickPlannerViz{
 		image_transport::Subscriber stream;
 		
 		// Std vector for holding path poses
-		std::vector<geometry_msgs::PoseStamped> global_path;
-		std::vector<geometry_msgs::PoseStamped> local_path;
+		std::vector<cv::Point> global_path;
+		std::vector<cv::Point> local_path;
 		// Euler object for storing robot's orientation
 		Euler robot_orientation;
 		double robot_x;
@@ -49,6 +49,9 @@ class JoystickPlannerViz{
 	    
 	    // Variables for projection calculations
 	    int window_midpoint;
+	    
+	    // Constants
+	    cv::Vec3b c_green = {0, 255, 0};
 	    
 	    // Variables for params
 	    std::string image_feed_topic;
@@ -75,7 +78,7 @@ class JoystickPlannerViz{
 			
 			// Initialize params
 			private_nh.param<std::string>("image_feed_topic", this->image_feed_topic, "camera/color/image_raw");
-			private_nh.param<std::string>("global_path_topic", this->global_path_topic, "global_path");
+			private_nh.param<std::string>("global_path_topic", this->global_path_topic, "/move_base_flex/teb_local_planner/TebLocalPlannerROS/global_plan");
 			private_nh.param<std::string>("local_path_topic", this->local_path_topic, "local_path");
 			private_nh.param<std::string>("odom_topic", this->odom_topic, "odom");
 			private_nh.param<std::string>("input_enabled_topic", this->input_enabled_topic, "joystick_planner/input_enabled");
@@ -118,12 +121,31 @@ class JoystickPlannerViz{
 		
 		void updateCurrentGlobalPath(const nav_msgs::Path::ConstPtr &path)
 		{
-			this->global_path = path->poses;
+			this->global_path = projectGlobalPath(path->poses);
 		}
 		
 		void updateCurrentLocalPath(const nav_msgs::Path::ConstPtr &path)
 		{
-			this->local_path = path->poses;
+			// this->local_path = projectGlobalPath(path->poses);
+		}
+		
+		
+		std::vector<cv::Point> projectGlobalPath(std::vector<geometry_msgs::PoseStamped> path){
+			std::vector<cv::Point> projection(20);
+			
+			int norm_x = path[0].pose.position.x;
+			int norm_y = path[0].pose.position.y;
+			int transform_x;
+			int transform_y;
+			
+			for (int i = 0; i < 100; i+=5){
+				transform_x = cos(M_PI / 2) * (path[i].pose.position.x - norm_x) -
+							  sin(M_PI / 2) * (path[i].pose.position.y - norm_y);
+				transform_y = cos(M_PI / 2) * (path[i].pose.position.y - norm_y) +
+							  sin(M_PI / 2) * (path[i].pose.position.x - norm_x);
+				projection[i] = cv::Point(transform_x, transform_y);
+			}
+			return projection;
 		}
 		
 		Euler quarternionToEuler(geometry_msgs::Quaternion q)
@@ -152,6 +174,12 @@ class JoystickPlannerViz{
 		{
 			if (img_ptr)
 			{
+				if ((this->global_path).size() != 0){
+					for (int i = 0; i < 20; i++){
+						img_ptr->image.at<Vec3b>(global_path[i]) = c_green;
+						ROS_INFO("draw point at: %d, %d", global_path[i].x, global_path[i].y);
+					}
+				}
 				cv::imshow(this->window_name, this->img_ptr->image);
 			}
 			cv::waitKey(1);
