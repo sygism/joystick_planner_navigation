@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<launch>
+		
+	<node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" respawn="false" name="depthimage_to_laserscan">
+		<remap from="image" to="/camera/depth/image_raw"/>
+		<param name="output_frame_id" value="camera_depth_frame"/>
+		<param name="scan_height" value="10"/>
+	</node>
+
+	<include file="$(find nav_stack_jsp)/launch/include/gmapping.launch" />
+	
+	<node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen">
+	  <rosparam file="$(find nav_stack_jsp)/params/controllers_teb.yaml" command="load" />
+	  <rosparam file="$(find nav_stack_jsp)/params/planners.yaml" command="load" />
+	  <rosparam file="$(find nav_stack_jsp)/params/recovery.yaml" command="load" />
+	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/costmap_common_params.yaml" subst_value="true" command="load" ns="global_costmap" />
+	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/costmap_common_params.yaml" subst_value="true" command="load" ns="local_costmap" />
+	  
+	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/global_costmap_params.yaml" command="load" ns="global_costmap" />
+	  <rosparam file="$(find nav_stack_jsp)/params/robotont_params/local_costmap_params.yaml" command="load" ns="local_costmap" />
+		<param name="local_costmap/width" value="4.0"/>
+		<param name="local_costmap/height" value="4.0"/>
+	  <remap from="cmd_vel" to="move_base_flex/cmd_vel"/>
+	</node>
+	
+	<node pkg="speed_controller_jsp" type="speed_controller_jsp_node" name="speed_controller_jsp" output="screen" />
+   
+	<node pkg="joy" type="joy_node" name="ps4_joy" respawn="true" >
+		<param name="dev" type="string" value="/dev/input/js0" />
+		<param name="deadzone" value="0.12" />
+	</node>
+	<node pkg="joystick_planner" type="joystick_planner_node" name="joystick_planner" output="screen">
+		<param name="scale_linear" value="1.0" />
+		<param name="scale_angular" value="0.5" />
+		<param name="odom_node" value="odom"/>
+		<param name="local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+	</node>
+	
+	<node name="fake_driver_node" pkg="robotont_driver" type="fake_driver_node" output="screen">
+		<param name="odom_frame" value="odom"/>
+		<param name="base_frame" value="base_footprint"/>
+  </node> 
+</launch>
