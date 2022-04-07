@@ -35,9 +35,4 @@
 		<param name="odom_node" value="odom"/>
 		<param name="local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
 	</node>
-	
-	<node name="fake_driver_node" pkg="robotont_driver" type="fake_driver_node" output="screen">
-		<param name="odom_frame" value="odom"/>
-		<param name="base_frame" value="base_footprint"/>
-  </node> 
 </launch>

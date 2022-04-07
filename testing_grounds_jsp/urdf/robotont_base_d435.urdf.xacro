@@ -77,4 +77,14 @@
 			<origin xyz="-0.05 0 0.2" rpy="0 0 0" />
 	</xacro:sensor_d435>
 	
+	<gazebo>
+        <plugin name="robotont_controller" filename="libgazebo_ros_planar_move.so">
+            <commandTopic>cmd_vel</commandTopic>
+            <odometryTopic>odom</odometryTopic>
+            <odometryFrame>odom</odometryFrame>
+            <odometryRate>30.0</odometryRate>
+            <robotBaseFrame>base_footprint</robotBaseFrame>
+        </plugin>
+    </gazebo>
+	
  </robot>
