@@ -1,0 +1,4 @@
+<?xml version="1.0" ?>
+<launch>
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find joystick_planner_viz)/conf/joystick_planner_viz_rviz_ui.rviz"/>
+</launch>
