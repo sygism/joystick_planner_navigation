@@ -16,6 +16,7 @@ Build status of the *joystick_planner* package:
 ## License
 
 The *joystick_planner* package is licensed under the GPLv3 license.
+
 Dependencies:
 * <a href="http://wiki.ros.org/move_base_flex">*move_base_flex*</a>
 * <a href="http://wiki.ros.org/sensor_msgs">*sensor_msgs*</a>
@@ -26,6 +27,7 @@ Dependencies:
 * <a href="http://wiki.ros.org/nav_msgs">*nav_msgs*</a>
 * <a href="http://wiki.ros.org/actionlib">*actionlib*</a>
 * <a href="http://wiki.ros.org/mbf_msgs">*mbf_msgs*</a>
+
 which are all licensed under the BSD license.
 
 All packages included are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the licenses for more details.
