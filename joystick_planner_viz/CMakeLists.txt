@@ -16,6 +16,7 @@ find_package(catkin COMPONENTS
   nav_msgs
   cv_bridge
   image_transport
+  sensor_msgs
   )
 
 find_package(OpenCV 3.2 REQUIRED)

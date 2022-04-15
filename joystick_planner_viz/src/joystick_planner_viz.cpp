@@ -13,9 +13,13 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Quaternion.h>
+#include <sensor_msgs/Joy.h>
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
+
+#define CVUI_IMPLEMENTATION
+#include "cvui.h"
 
 using namespace cv;
 
@@ -27,17 +31,15 @@ class JoystickPlannerViz{
 	};
 
 	private:
-		ros::Subscriber global_path_sub;
-		ros::Subscriber local_path_sub;
 		ros::Subscriber robot_odometry_sub;
 		ros::Subscriber input_enabled_sub;
+		ros::Subscriber joy_pos_sub;
 		
 		// transport layer for opencv
 		image_transport::Subscriber stream;
 		
 		// Std vector for holding path poses
 		std::vector<cv::Point> global_path;
-		std::vector<cv::Point> local_path;
 		// Euler object for storing robot's orientation
 		Euler robot_orientation;
 		double robot_x;
@@ -47,24 +49,21 @@ class JoystickPlannerViz{
 	    // default window name
 	    std::string window_name = "JoystickPlanner UI";
 	    
-	    // Variables for projection calculations
-	    int window_midpoint;
-	    
 	    // Constants
 	    cv::Vec3b c_green = {0, 255, 0};
 	    
+	    // Joy values
+	    double l_stick_x = 0;
+	    double r_stick_x = 0;
+	    
 	    // Variables for params
 	    std::string image_feed_topic;
-	    std::string global_path_topic;
-	    std::string local_path_topic;
 	    std::string odom_topic;
 	    std::string input_enabled_topic;
-	    int window_width;
-	    int window_height;
-	    bool show_global_path;
-	    bool show_local_path;
-	    bool show_input_enabled;
-	    bool show_robot_orientation;
+	    std::string joy_topic;
+	    bool show_input_enabled = false;
+	    bool show_robot_orientation = false;
+	    bool show_heading = false;
 	
 	protected:
 	    cv_bridge::CvImagePtr img_ptr;
@@ -78,23 +77,15 @@ class JoystickPlannerViz{
 			
 			// Initialize params
 			private_nh.param<std::string>("image_feed_topic", this->image_feed_topic, "camera/color/image_raw");
-			private_nh.param<std::string>("global_path_topic", this->global_path_topic, "/move_base_flex/teb_local_planner/TebLocalPlannerROS/global_plan");
-			private_nh.param<std::string>("local_path_topic", this->local_path_topic, "local_path");
+			private_nh.param<std::string>("joy_node", this->joy_topic, "/joy");
 			private_nh.param<std::string>("odom_topic", this->odom_topic, "odom");
-			private_nh.param<std::string>("input_enabled_topic", this->input_enabled_topic, "joystick_planner/input_enabled");
-			private_nh.param<int>("window_width", this->window_width, 1280);
-			private_nh.param<int>("window_height", this->window_height, 720);
-			private_nh.param<bool>("show_global_path", this->show_global_path, true);
-			private_nh.param<bool>("show_local_path", this->show_local_path, true);
+			private_nh.param<std::string>("input_enabled_topic", this->input_enabled_topic, "joystick_planner/input_status");
 			private_nh.param<bool>("show_input_enabled", this->show_input_enabled, true);
 			private_nh.param<bool>("show_robot_orientation", this->show_robot_orientation, true);
 			
-			this->window_midpoint = (int)(this->window_width / 2);
 			
 			// subscribe to 'global_path' topic to fetch current global path for visualization
-			this->global_path_sub = n.subscribe<nav_msgs::Path>(this->global_path_topic, 10, &JoystickPlannerViz::updateCurrentGlobalPath, this);
-			// subscribe to 'local_path' topic to fetch current local path for visualization
-			this->local_path_sub = n.subscribe<nav_msgs::Path>(this->local_path_topic, 10, &JoystickPlannerViz::updateCurrentLocalPath, this);
+			this->joy_pos_sub = n.subscribe<sensor_msgs::Joy>("/joy", 10, &JoystickPlannerViz::readJoyValues, this);
 			// subscribe to '/odometry/filtered' topic where the robot's odometry is published to
 			this->robot_odometry_sub = n.subscribe<nav_msgs::Odometry>(this->odom_topic, 10,  &JoystickPlannerViz::updateRobotPosition, this);
 			this->input_enabled_sub = n.subscribe<std_msgs::Bool>(this->input_enabled_topic, 10, &JoystickPlannerViz::isInputEnabled, this);
@@ -103,7 +94,8 @@ class JoystickPlannerViz{
 			// create named window for camera feed visualization
 			cv::namedWindow(this->window_name, cv::WINDOW_NORMAL);
 			// resize window to 1280x720 resolution
-			cv::resizeWindow(this->window_name, this->window_width, this->window_height);
+			cv::resizeWindow(this->window_name, 1280, 720);
+			cvui::init(this->window_name);
 		}
 		
 		void updateRobotPosition(const nav_msgs::Odometry::ConstPtr &pos)
@@ -119,33 +111,74 @@ class JoystickPlannerViz{
 			this->input_enabled = enabled->data;
 		}
 		
-		void updateCurrentGlobalPath(const nav_msgs::Path::ConstPtr &path)
-		{
-			this->global_path = projectGlobalPath(path->poses);
+		void readJoyValues(const sensor_msgs::Joy::ConstPtr &joy){
+			this->l_stick_x = joy->axes[0];
+			this->r_stick_x = joy->axes[2] * 0.5;
 		}
 		
-		void updateCurrentLocalPath(const nav_msgs::Path::ConstPtr &path)
-		{
-			// this->local_path = projectGlobalPath(path->poses);
-		}
-		
-		
-		std::vector<cv::Point> projectGlobalPath(std::vector<geometry_msgs::PoseStamped> path){
+		std::vector<cv::Point> projectGlobalPath(){
+			int x, y;
 			std::vector<cv::Point> projection(20);
+			int scalar = 0;
+			int n_rows = this->img_ptr->image.rows;
+			int n_cols = this->img_ptr->image.cols / 2;
 			
-			int norm_x = path[0].pose.position.x;
-			int norm_y = path[0].pose.position.y;
-			int transform_x;
-			int transform_y;
-			
-			for (int i = 0; i < 100; i+=5){
-				transform_x = cos(M_PI / 2) * (path[i].pose.position.x - norm_x) -
-							  sin(M_PI / 2) * (path[i].pose.position.y - norm_y);
-				transform_y = cos(M_PI / 2) * (path[i].pose.position.y - norm_y) +
-							  sin(M_PI / 2) * (path[i].pose.position.x - norm_x);
-				projection[i] = cv::Point(transform_x, transform_y);
+			for (int i = 0; i < 20; i++){
+				x = (int) (n_rows - (sin(this->l_stick_x * (M_PI / 2) + this->r_stick_x * scalar) * scalar));
+				y = (int) (n_cols - (cos(this->l_stick_x * (M_PI / 2) + this->r_stick_x * scalar) * scalar));
+				projection[i] = cv::Point(x, y);
+				scalar += 15;
 			}
+			
 			return projection;
+		}
+		
+		void displayRPY(){
+			std::string orientation_roll = "Roll: " + std::to_string(this->robot_orientation.roll) + " rad";
+			std::string orientation_pitch = "Pitch: " + std::to_string(this->robot_orientation.pitch) + " rad";
+			std::string orientation_yaw = "Yaw: " + std::to_string(this->robot_orientation.yaw) + " rad";
+			cv::putText(this->img_ptr->image,
+						orientation_roll,
+						cv::Point(10, this->img_ptr->image.rows / 2),
+						cv::FONT_HERSHEY_DUPLEX,
+						1.0,
+						CV_RGB(255, 255, 255),
+						2);
+			cv::putText(this->img_ptr->image,
+						orientation_pitch,
+						cv::Point(10, (this->img_ptr->image.rows / 2) + 30),
+						cv::FONT_HERSHEY_DUPLEX,
+						1.0,
+						CV_RGB(255, 255, 255),
+						2);
+			cv::putText(this->img_ptr->image,
+						orientation_yaw,
+						cv::Point(10, (this->img_ptr->image.rows / 2) + 60),
+						cv::FONT_HERSHEY_DUPLEX,
+						1.0,
+						CV_RGB(255, 255, 255),
+						2);
+		}
+		
+		void displayInputEnabled(){
+			if (this->input_enabled){
+				cv::putText(this->img_ptr->image,
+					"Planner status: input is enabled!",
+					cv::Point(10, 25),
+					cv::FONT_HERSHEY_DUPLEX,
+					1.0,
+					CV_RGB(0, 255, 0),
+					2);
+			}
+			else{
+				cv::putText(this->img_ptr->image,
+					"Planner status: input is disabled!",
+					cv::Point(10, 25),
+					cv::FONT_HERSHEY_DUPLEX,
+					1.0,
+					CV_RGB(255, 0, 0),
+					2);
+			}
 		}
 		
 		Euler quarternionToEuler(geometry_msgs::Quaternion q)
@@ -174,12 +207,25 @@ class JoystickPlannerViz{
 		{
 			if (img_ptr)
 			{
-				if ((this->global_path).size() != 0){
-					for (int i = 0; i < 20; i++){
-						img_ptr->image.at<Vec3b>(global_path[i]) = c_green;
-						ROS_INFO("draw point at: %d, %d", global_path[i].x, global_path[i].y);
+				if (this->show_heading){
+					if (this->input_enabled){
+						std::vector<cv::Point> path = this->projectGlobalPath();
+						for (int i = 0; i < 20; i++){
+							cv::circle(img_ptr->image, path[i], 5, c_green, CV_FILLED);
+						}
 					}
 				}
+				if (this->show_robot_orientation){
+					displayRPY();
+				}
+				if (this->show_input_enabled){
+					displayInputEnabled();
+				}
+			
+				
+				cvui::checkbox(this->img_ptr->image, 1600, 600, "Display robot orientation", &this->show_robot_orientation, 0xFFFFFF, 0.5);
+				cvui::checkbox(this->img_ptr->image, 1600, 650, "Display set heading", &this->show_heading, 0xFFFFFF, 0.5);
+				cvui::checkbox(this->img_ptr->image, 1600, 700, "Display planner status", &this->show_input_enabled, 0xFFFFFF, 0.5);
 				cv::imshow(this->window_name, this->img_ptr->image);
 			}
 			cv::waitKey(1);

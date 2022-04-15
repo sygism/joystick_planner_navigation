@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Quaternion.h>
@@ -37,6 +38,7 @@ private:
     ros::Subscriber controller_raw;
 	ros::Subscriber robot_odometry;
 	ros::Publisher speed_modifier_pub;
+	ros::Publisher input_status_pub;
 	
 	// Variable for determining whether input is enabled
 	bool inputEnabled = false;
@@ -111,7 +113,8 @@ public:
 		this->robot_odometry = n.subscribe<nav_msgs::Odometry>(this->odom_node, 10,  &JoystickPlanner::updateRobotPosition, this);
 		// Create publisher for joystick given robot linear speed
 		this->speed_modifier_pub = n.advertise<std_msgs::Float32>(this->speed_modifier_pub_topic, 30);
-		// this->input_status = n.advertise<std_msgs::Bool>(this->input_status_topic, 100);
+		// Create publisher for input enabled info
+		this->input_status_pub = n.advertise<std_msgs::Bool>(this->input_status_topic, 30);
 		
 		pc = new actionlib::SimpleActionClient<mbf_msgs::ExePathAction>(this->exe_path_topic, true);
 		// wait for server to start
@@ -152,11 +155,9 @@ public:
 			{
 			case true:
 				ROS_INFO("JoystickPlanner INFO: input is now enabled.");
-				// this->input_status.publish(true);
 				break;
 			case false:
 				ROS_INFO("JoystickPlanner INFO: input is now disabled.");
-				// this->input_status.publish(false);
 				break;
 			}
 		}
@@ -305,6 +306,9 @@ public:
 		{
 			this->constructPath();
 		}
+		std_msgs::Bool msg;
+		msg.data = this->inputEnabled;
+		this->input_status_pub.publish(msg);
 	}
 };
 
