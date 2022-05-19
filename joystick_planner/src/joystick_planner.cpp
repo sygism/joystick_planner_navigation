@@ -44,9 +44,8 @@ private:
 	bool inputEnabled = false;
 	
     // variables for raw data from the joy node
-    double leftStickY, leftStickX, rightStickY, rightStickX, l2, r2;
-    int arrowsX, arrowsY, buttonSq, buttonX, buttonO, buttonTr,
-        buttonTouch, l1, r1;
+    double leftStickY, leftStickX, rightStickY, rightStickX;
+    int xButton, l1;
 	
 	// variables for the robot's position
 	double robot_x_pos, robot_y_pos;
@@ -174,7 +173,7 @@ public:
 			this->l1_btn_state = button_down;
 		}
 		
-		if (this->buttonX)
+		if (this->xButton)
 		{
 			pc->cancelGoal();
 		}
@@ -261,24 +260,19 @@ public:
 	{
     	if (this->controller_mapping == "DS3")
     	{
-			return;
+		// DS3 mapping for buttons (using 'xboxdrv')
+			this->xButton = joy->buttons[0];
+			this->l1 = joy->buttons[4];
+			this->leftStickX = joy->axes[0];
+			this->leftStickY = joy->axes[1];
+			this->rightStickX = joy->axes[2];
+			this->rightStickY = joy->axes[3];
     	}
     	else
     	{
-    		// DS4 mapping for buttons
-			this->buttonSq = joy->buttons[0];
-			this->buttonX = joy->buttons[1];
-			this->buttonO = joy->buttons[2];
-			this->buttonTr = joy->buttons[3];
-			this->buttonTouch = joy->buttons[13];
+    		// DS4 mapping for buttons (using 'ds4drv')
+			this->xButton = joy->buttons[1];
 			this->l1 = joy->buttons[4];
-			this->r1 = joy->buttons[5];
-	
-			this->arrowsX = joy->axes[9];
-			this->arrowsY = joy->axes[10];
-			this->l2 = joy->axes[3];
-			this->r2 = joy->axes[4];
-	
 			this->leftStickX = joy->axes[0];
 			this->leftStickY = joy->axes[1];
 			this->rightStickX = joy->axes[2];
