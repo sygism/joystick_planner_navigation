@@ -2,6 +2,7 @@
  *  joystick_planner.cpp
  *
  *  author: Markus Erik Sügis <markus.sugis@gmail.com>
+ *  Some aspects of DS4 controller integration are loosely based on the works of solbach (ref: https://github.com/solbach/ps4-ros)
  */
 
 #include <string>
