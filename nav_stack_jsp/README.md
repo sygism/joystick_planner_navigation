@@ -40,3 +40,7 @@ ran on the actual robot, this launch file does not start said node automatically
 To run the system in a simulated environment (also launches the *depthimage_to_laserscan* node):
 
     roslaunch nav_stack_jsp nav_stack_robotont_sim.launch
+
+By default, the planner can be started/stopped using the "L1" key on the controller.
+
+For cancelling a path currently executed can be done using the "X" key on the controller.
