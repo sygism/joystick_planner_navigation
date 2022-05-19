@@ -18,6 +18,19 @@ The source code for ROS Navigation can be found <a href="https://github.com/ros-
 
 Additional information about ROS Navigation can be found <a href="http://wiki.ros.org/navigation">here</a>.
 
+The *joystick_planner* node requires an appropriate controller to be connected to the computer on which the system is being ran on. For example, using a Playstation
+DualShock 4 controller with the Ubuntu operating system, an appropriate driver is *ds4drv*, which can be found from the apt repository:
+
+    apt install ds4drv
+
+For connecting the controller using Bluetooth:
+
+    ds4drv
+
+For connecting the controller using an USB cable:
+
+    ds4drv --hidraw
+
 ## Usage
 After successfully installing all the dependencies, for running the system on a real Robotont robot (for the best performance, the *depthimage_to_laserscan* node should be
 ran on the actual robot, this launch file does not start said node automatically):
