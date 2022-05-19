@@ -56,24 +56,18 @@ public:
 			newCmd.angular = cmd->angular;
 			newCmd.linear = cmd->linear;
 			
-			if (this->speed_modifier > this->max_vel_x)
-			{
-				newCmd.linear.x = this->max_vel_x;
-			}
-			else if (this->speed_modifier < this->min_vel_x)
-			{
-				newCmd.linear.x = this->min_vel_x;
-			}
-			else
-			{
-				newCmd.linear.x = this->speed_modifier;
-			}
+			newCmd.linear.x = this->calculateSpeed(this->speed_modifier);
 			this->filtered_cmd_vel_pub.publish(newCmd);
     	}
     	else
     	{
     		this->filtered_cmd_vel_pub.publish(cmd);
     	}
+    }
+    
+    double calculateSpeed(double joy_pos_l)
+    {
+	return (this->max_vel_x - this->min_vel_x) * joy_pos_l + this->min_vel_x;
     }
 };
 
