@@ -215,7 +215,7 @@ public:
 		
 		// Send requested speed to the SpeedController
 		std_msgs::Float32 speed_mod;
-		speed_mod.data = this->calculateSpeed(current_joy_l_y);
+		speed_mod.data = current_joy_l_y;
 		this->speed_modifier_pub.publish(speed_mod);
 		
 		if (current_joy_l_y != 0)
@@ -286,11 +286,6 @@ public:
 		angles.pitch = asin(2 * (q.w * q.y - q.z * q.x));
 		angles.yaw = (atan2((2 * (q.w * q.z + q.x * q.y)), (1 - 2 * (pow(q.y, 2) + pow(q.z, 2)))));
 		return angles;
-	}
-	
-	double calculateSpeed(double joy_pos_l)
-	{
-		return 0.35 * joy_pos_l + 0.15;
 	}
 	
 	void run()
