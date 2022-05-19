@@ -8,11 +8,13 @@ by *move_base_flex* to be in conjunction with the user's input (the vertical pos
 Refer to *link_to_thesis* for more information.
 
 ## Parameters
-* string cmd_vel_sub_topic (default: /move_base_flex/cmd_vel) - set the topic from which the move_base velocity commands should be read from.
-* string cmd_vel_pub_topic (default: /cmd_vel) - set the topic to which the scaled velocity commands will be published to.
-*	string speed_modifier_sub_topic (default: /joystick_planner/speed_modifier) - set the topic from which the vertical position of the operator's gamepad should be read from.
-*	double max_vel_x (default: 0.5) - set the maximum linear velocity for the robot.
-*	double min_vel_x (default: 0.1) - set the minimum linear velocity for the robot.
+| Parameter name | Data type | Default value | Description |
+| -------------- | --------- | ------------- | ----------- |
+| cmd_vel_sub_topic | string | /move_base_flex/cmd_vel | Set the topic from which the move_base velocity commands should be read from |
+| cmd_vel_pub_topic | string | /cmd_vel | Set the topic to which the scaled velocity commands will be published to |
+| speed_modifier_sub_topic | string | /joystick_planner/speed_modifier | Set the topic from which the vertical position of the operator's gamepad should be read from |
+| max_vel_x | double | 0.5 | Set the maximum linear velocity for the robot |
+| min_vel_x | double | 0.1 | Set the minimum linear velocity for the robot |
 
 ## Setup
 
