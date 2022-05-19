@@ -1,16 +1,10 @@
 joystick_planner ROS Package
 =============================
 
-# Introduction
+## Introduction
 The *joystick_planner* package acts as a global planner for ROS Navigation. The planner reads the input from a joystick based on which a global path is generated.
 
 Refer to *link_to_thesis* for more information.
-
-## Videos
-
-## License
-
-The *joystick_planner* package is licensed under the GPLv3 license.
 
 ## Requirements
 
