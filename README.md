@@ -5,6 +5,8 @@ The *joystick_planner_navigation* repository was constructed as a part of the au
 
 The system was tested on the robotplatform <a href="https://github.com/ut-ims-robotics/robotont">Robotont</a>.
 
+The thesis can be found in UT Dspace environment [here](https://dspace.ut.ee/handle/10062/83015).
+
 ## Contents
 * *joystick_planner* - ROS package containing the source code for the *joystick_planner* node.
 * *joystick_planner_viz* - ROS package containing the source code for two system interface nodes.
